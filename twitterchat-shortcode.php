@@ -1,12 +1,11 @@
 <?php
 
 /*
-Plugin Name: Twitter Archival Shortcode
+Plugin Name: LJPL Twitter User Archival Shortcode
 Plugin URI: http://aramzs.me/twitterarchival
 Description: This plugin allows you to place a shortcode in your post that will archive a Twitter search term, including hashtags. 
-Version: 0.85
-Author: Aram Zucker-Scharff
-Author URI: http://aramzs.me
+Version: 1.00
+
 License: GPL2
 */
 
@@ -33,6 +32,10 @@ License: GPL2
 	Enjoy.
 
 */
+// based on
+Plugin Name: Twitter Archival Shortcode
+Author: Aram Zucker-Scharff
+Author URI: http://aramzs.me
 
 //Based on the original script from Daniel Thorogood
 // who can be found at http://twitter.com/SLODeveloper
@@ -66,8 +69,6 @@ $threefour = $ta_option_array['threefour'];
 
 function twitter_search_archive( $atts ) {
 
-
-
 	$post_id = get_the_ID();
 
 	add_post_meta($post_id, 'twitter_search_archive', '', true);
@@ -83,20 +84,35 @@ function twitter_search_archive( $atts ) {
 			'within' => '',
 			'order' => 'reverse',
 			'title' => 'Twitter Archive for',
-			'blackbird' => 'no'
+			'blackbird' => 'no',
+			
+			// added by ljasinski_pl on 2012-10-10 11:48
+			'user' => '',	// -- get only twitts of chosen user
+			'cache' => 900,  // -- refresh every xx seconds
+			'until' => ''   // -- stop refreshing after this date
+			
+			// end of added by ljasinski_pl
 		), $atts ) );
 		
 		//Add post meta to track and check the options that the user is feeding in. 
 		add_post_meta($post_id, 'twitter_archive_control', '', true);
-		$controlcheck = $for . "," . $within . "," . $order . "," . $title . "," . $blackbird;
+		add_post_meta($post_id, 'cache_refresh', time() + $cache, 'true');
+		
+		$refresh_at = get_post_meta($post_id, 'cache_refresh', true);
+		
+		$controlcheck = $for . "," . $within . "," . $order . "," . $title . "," . $blackbird . "," . $user . "," . $cache . "," . $until;
 		$checkcontrol = get_post_meta($post_id, 'twitter_archive_control', true);
 	
 	//Check if the options in the shortcode are the same as they were previously. If not let us refresh the archive.
-	if (!($controlcheck == $checkcontrol)) {
+	if (!($controlcheck == $checkcontrol)  || ($refresh_at < time() && (!$until || strtotime($until) > now() ) ) ) {
 	
 		
 		$minushtml = strip_tags($for);
 		$safefor = urlencode($minushtml);
+		
+		// -- added by ljasinskipl on 2012-10-10 11:48
+		if($user)
+			$safefor .= "%20from:" . $user;
 		
 		$twitterquery = get_twitter_query($safefor);
 		
@@ -115,6 +131,7 @@ function twitter_search_archive( $atts ) {
 		
 		update_post_meta($post_id, 'twitter_search_archive', $archive);
 		update_post_meta($post_id, 'twitter_archive_control', $controlcheck);
+		update_post_meta($post_id, 'cache_refresh', time() + $cache);
 	
 	}
 	else {
@@ -265,7 +282,8 @@ function output_data($xml,$datelimit,$ordered,$keepGoing,$blackbird)
 				$timestamp = $entry->published;
 				$link=$entry->link[0]['href'];
 				$unixtime = strtotime($timestamp);
-				$datetime = date('h:i:s A, n-j-y', $unixtime);
+				// $datetime = date('h:i:s A, n-j-y', $unixtime);
+				$datetime = date('d.n.Y h:i:s', $unixtime);	// update by ljasinski_pl 2012-10-10 12:01
 				
 						//Ok, so here's where it gets complex... If you are running WP3.4, there is now an awesome oEmbed function that rendders tweets for us. 
 						//See http://codex.wordpress.org/Embeds and http://core.trac.wordpress.org/browser/tags/3.4/wp-includes/media.php#L0 for more info.
