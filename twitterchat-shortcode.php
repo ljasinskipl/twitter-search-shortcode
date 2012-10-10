@@ -33,10 +33,11 @@ License: GPL2
 
 */
 // based on
+/*
 Plugin Name: Twitter Archival Shortcode
 Author: Aram Zucker-Scharff
 Author URI: http://aramzs.me
-
+*/
 //Based on the original script from Daniel Thorogood
 // who can be found at http://twitter.com/SLODeveloper
 //Received through the kind folks who run #wjchat 
