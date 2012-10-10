@@ -105,7 +105,7 @@ function twitter_search_archive( $atts ) {
 		$checkcontrol = get_post_meta($post_id, 'twitter_archive_control', true);
 	
 	//Check if the options in the shortcode are the same as they were previously. If not let us refresh the archive.
-	if (!($controlcheck == $checkcontrol)  || ($refresh_at < time() && (!$until || strtotime($until) > now() ) ) ) {
+	if (!($controlcheck == $checkcontrol)  || ($refresh_at < time() && (!$until || strtotime($until) > time() ) ) ) {
 	
 		
 		$minushtml = strip_tags($for);
